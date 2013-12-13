@@ -3,8 +3,18 @@ var sys = require('sys'),
   Docker = require('dockerode');
 
 
-var Container = function (docker, server, cmd, args) {
-  args.unshift(command);
+var Container = function (docker, server, cmd, args, image) {
+
+  if(image === undefined) {
+    cmd = 'mkdir /browserswarm; cd /browserswarm; ' + cmd;
+  } else {
+    cmd = 'cd /browserswarm; ' + cmd;
+  }
+
+  for (var i = 0; i < args.length; i++) {
+    cmd += ' ' + args[i];
+  }
+
   this.options = {
     'Hostname': '',
     'User': '',
@@ -15,9 +25,9 @@ var Container = function (docker, server, cmd, args) {
     'OpenStdin': false,
     'StdinOnce': false,
     'Env': null,
-    'Cmd': args,
+    'Cmd': ['bash', '-c', cmd],
     'Dns': ['8.8.8.8', '8.8.4.4'],
-    'Image': 'browserswarm/base',
+    'Image': image || 'apocas/nodechecker',
     'Volumes': {},
     'VolumesFrom': ''
   };
@@ -38,13 +48,12 @@ Container.prototype.create = function (cb) {
     if (err) return self.server.emit('stderr', err + '\n');
 
     self.container = container;
-    cb(err, self);
+    cb(err, self.container);
   });
 };
 
 
-//TODO...
-Container.prototype.run = function (command, args, options) {
+Container.prototype.run = function () {
   var self = this;
 
   this.container.start(function(err, res) {
@@ -83,7 +92,11 @@ Container.prototype.wait = function() {
 
     if(res.StatusCode !== undefined) {
       if(self.running == true) {
-        self.emit('done', res.StatusCode);
+        self.container.commit({'repo': self.container.id}, function(err, data) {
+          if (err) return self.server.emit('stderr', err + '\n');
+          self.remove();
+          self.emit('done', res.StatusCode);
+        });
       }
     }
   });
@@ -104,12 +117,14 @@ Container.prototype.attach = function() {
         var payload = stream.read(header.readUInt32BE(4));
         if (payload === null) break;
 
+        var payload_str = payload.toString('utf8');
+
         if(type == 2) {
-          console.log('[CONTAINER STDERR]', buf);
-          self.server.emit('stderr', payload);
+          console.log('[CONTAINER STDERR]', payload_str);
+          self.server.emit('stderr', payload_str);
         } else {
-          console.log('[CONTAINER STDOUT]', buf);
-          self.server.emit('stdout', payload);
+          console.log('[CONTAINER STDOUT]', payload_str);
+          self.server.emit('stdout', payload_str);
         }
         header = stream.read(8);
       }

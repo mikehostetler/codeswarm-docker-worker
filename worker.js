@@ -5,15 +5,19 @@ var net           = require('net');
 var DuplexEmitter = require('duplex-emitter');
 var reconnect     = require('reconnect');
 var Docker        = require('dockerode');
+var Container        = require('./container');
 
 exports.create = create;
 
 
 /// Config
 
-var dispatcherPort = 8632; /// TODO: make this configurable
+var dispatcherPort = 8632;
+var dispatcherAddress = "127.0.0.1";
 
-function create() {
+function create(address, port) {
+  if(address) dispatcherAddress = address;
+  if(port) dispatcherPort = port;
   return new Worker;
 }
 
@@ -46,8 +50,8 @@ W.connect = function connect() {
 /// startReconnect
 
 function startReconnect() {
-  var self;
-  this.reconnect = reconnect(onConnect.bind(this)).connect(dispatcherPort);
+  var self = this;
+  this.reconnect = reconnect(onConnect.bind(this)).connect(dispatcherPort, dispatcherAddress);
 
   this.reconnect.on('disconnect', function() {
     console.log('Disconnected from dispatcher'.red);
@@ -81,18 +85,22 @@ function onSpawn(command, args, options) {
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
-  if(container) {
-    container.run(command, args, options);
-  } else {
-    var container = new Container(this.docker, this.server, command, args);
-    container.create(function(err, container) {
-      if (err) {
-        self.fatalError.call(self, err);
-      } else {
-        self.container = container;
-      }
-    });
+  var id = undefined;
+  if(self.container) {
+    id = self.container.id;
   }
+
+  //Docker way, each strider instruction commits to a new image based on the previous one.
+  //"Each instruction in a Dockerfile commits the change into a new image which will then be used as the base of the next instruction." <- same tactic used internally by docker while interpreting dockerifles
+  var container = new Container(this.docker, this.server, command, args, id);
+  container.create(function(err, dcontainer) {
+    if (err) {
+      self.fatalError.call(self, err);
+    } else {
+      self.container = dcontainer;
+      container.run();
+    }
+  });
 
   container.on('done', function(code) {
     self.server.emit('close', code);

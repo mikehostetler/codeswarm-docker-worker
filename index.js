@@ -2,6 +2,6 @@
 
 var Worker = require('./worker');
 
-var worker = Worker.create();
+var worker = Worker.create(process.argv[2], process.argv[3]);
 
 worker.work();
