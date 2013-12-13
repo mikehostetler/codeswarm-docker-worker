@@ -5,19 +5,19 @@ var net           = require('net');
 var DuplexEmitter = require('duplex-emitter');
 var reconnect     = require('reconnect');
 var Docker        = require('dockerode');
-var Container        = require('./container');
+var Container     = require('./container');
 
 exports.create = create;
 
 
 /// Config
 
-var dispatcherPort = 8632;
-var dispatcherAddress = "127.0.0.1";
+var dispatcherPort;
+var dispatcherAddress;
 
 function create(address, port) {
-  if(address) dispatcherAddress = address;
-  if(port) dispatcherPort = port;
+  dispatcherAddress = address || "127.0.0.1";
+  dispatcherPort = port || 8632;
   return new Worker;
 }
 
@@ -54,11 +54,8 @@ function startReconnect() {
   this.reconnect = reconnect(onConnect.bind(this)).connect(dispatcherPort, dispatcherAddress);
 
   this.reconnect.on('disconnect', function() {
+    self.container = undefined;
     console.log('Disconnected from dispatcher'.red);
-
-    if(self.container) {
-      container.stop();
-    }
   });
 
   this.reconnect.on('reconnect', function() {
