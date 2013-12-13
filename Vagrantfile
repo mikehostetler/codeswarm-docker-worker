@@ -91,6 +91,17 @@ Vagrant::Config.run do |config|
   end
 
   config.ssh.forward_agent = true
+
+  config.vm.provision :chef_solo do |chef|
+    chef.add_recipe "nodejs"
+    chef.json = {
+      "nodejs" => {
+        "version" => "0.10.23",
+        "from_source" => true
+      }
+    }
+  end
+
 end
 
 Vagrant::VERSION >= "1.1.0" and Vagrant.configure("2") do |config|

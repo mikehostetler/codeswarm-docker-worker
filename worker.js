@@ -82,14 +82,15 @@ function onSpawn(command, args, options) {
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
-  var id = undefined;
-  if(self.container) {
-    id = self.container.id;
-  }
-
   //Docker way, each strider instruction commits to a new image based on the previous one.
   //"Each instruction in a Dockerfile commits the change into a new image which will then be used as the base of the next instruction." <- same tactic used internally by docker while interpreting dockerifles
-  var container = new Container(this.docker, this.server, command, args, id);
+
+  var cid = undefined;
+  if(self.container) {
+    cid = self.container.id;
+  }
+
+  var container = new Container(this.docker, this.server, command, args, cid);
   container.create(function(err, dcontainer) {
     if (err) {
       self.fatalError.call(self, err);
