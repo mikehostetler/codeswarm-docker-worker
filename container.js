@@ -3,12 +3,12 @@ var sys = require('sys'),
   Docker = require('dockerode');
 
 
-var Container = function (docker, server, cmd, args, image) {
+var Container = function (docker, server, cmd, args, options, image) {
 
   if(image === undefined) {
-    cmd = 'mkdir /browserswarm; cd /browserswarm; ' + cmd;
+    cmd = 'mkdir -p ' + options.cwd + '; cd ' + options.cwd + '; ' + cmd;
   } else {
-    cmd = 'cd /browserswarm; ' + cmd;
+    cmd = 'cd ' + options.cwd + '; ' + cmd;
   }
 
   for (var i = 0; i < args.length; i++) {
@@ -45,7 +45,10 @@ Container.prototype.create = function (cb) {
   var self = this;
 
   this.docker.createContainer(this.options, function (err, container) {
-    if (err) return self.server.emit('stderr', err + '\n');
+    if (err) {
+      console.log(err);
+      return self.server.emit('stderr', err + '\n');
+    }
 
     self.container = container;
     cb(err, self.container);
@@ -57,7 +60,10 @@ Container.prototype.run = function () {
   var self = this;
 
   this.container.start(function(err, res) {
-    if (err) return self.server.emit('stderr', err + '\n');
+    if (err) {
+      console.log(err);
+      return self.server.emit('stderr', err + '\n');
+    }
 
     self.running = true;
     self.wait();

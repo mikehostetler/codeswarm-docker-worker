@@ -90,9 +90,10 @@ function onSpawn(command, args, options) {
     cid = self.container.id;
   }
 
-  var container = new Container(this.docker, this.server, command, args, cid);
+  var container = new Container(this.docker, this.server, command, args, options, cid);
   container.create(function(err, dcontainer) {
     if (err) {
+      console.log(err);
       self.fatalError.call(self, err);
     } else {
       self.container = dcontainer;
