@@ -27,6 +27,7 @@ function Worker() {
   this.server = undefined;
   this.docker = undefined;
   this.container = undefined;
+  this.images = [];
 }
 
 var W = Worker.prototype;
@@ -54,7 +55,11 @@ function startReconnect() {
   this.reconnect = reconnect(onConnect.bind(this)).connect(dispatcherPort, dispatcherAddress);
 
   this.reconnect.on('disconnect', function() {
-    self.container = undefined;
+    if(self.container) {
+      self.container.clean(self.images);
+      self.container = undefined;
+    }
+
     console.log('Disconnected from dispatcher'.red);
   });
 
@@ -70,6 +75,7 @@ function onConnect(socket) {
   console.log('Connected to dispatcher'.green);
   this.socket = socket;
   this.server = DuplexEmitter(socket);
+  this.images = [];
 
   this.server.on('spawn', onSpawn.bind(this));
 }
@@ -87,7 +93,7 @@ function onSpawn(command, args, options) {
 
   var cid = undefined;
   if(self.container) {
-    cid = self.container.id;
+    cid = self.container.container.id;
   }
 
   var container = new Container(this.docker, this.server, command, args, options, cid);
@@ -96,12 +102,13 @@ function onSpawn(command, args, options) {
       console.log(err);
       self.fatalError.call(self, err);
     } else {
-      self.container = dcontainer;
+      self.container = container;
       container.run();
     }
   });
 
   container.on('done', function(code) {
+    self.images.push(this.container.id);
     self.server.emit('close', code);
   });
 }

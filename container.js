@@ -1,6 +1,7 @@
 var sys = require('sys'),
-  events = require('events');
-  Docker = require('dockerode');
+  events = require('events'),
+  Docker = require('dockerode'),
+  async     = require('async');
 
 
 var Container = function (docker, server, cmd, args, options, image) {
@@ -99,13 +100,27 @@ Container.prototype.wait = function() {
     if(res.StatusCode !== undefined) {
       if(self.running == true) {
         self.container.commit({'repo': self.container.id}, function(err, data) {
-          if (err) return self.server.emit('stderr', err + '\n');
+          if (err) {
+            console.log(err);
+            return self.server.emit('stderr', err + '\n');
+          }
           self.remove();
           self.emit('done', res.StatusCode);
         });
       }
     }
   });
+};
+
+
+Container.prototype.clean = function(images) {
+  var self = this;
+  async.forEach(images, function(image, callback) {
+    self.docker.getImage(image).remove(function(err, data) {
+      //if(err) console.log(err);
+      callback();
+    });
+  }, function(err) {});
 };
 
 
@@ -140,8 +155,9 @@ Container.prototype.attach = function() {
 
 
 Container.prototype.remove = function () {
-  var self = this;
-  self.container.remove(function(err, res) {});
+  this.container.remove(function(err, res) {
+    if(err) console.log(err);
+  });
 };
 
 
