@@ -104,7 +104,6 @@ Container.prototype.wait = function() {
             console.log(err);
             return self.server.emit('stderr', err + '\n');
           }
-          self.remove();
           self.emit('done', res.StatusCode);
         });
       }
@@ -115,12 +114,35 @@ Container.prototype.wait = function() {
 
 Container.prototype.clean = function(images) {
   var self = this;
+  this.cleanContainers(images, function() {
+    self.cleanImages(images, function(){});
+  });
+};
+
+
+Container.prototype.cleanContainers = function(images, cb) {
+  var self = this;
   async.forEach(images, function(image, callback) {
-    self.docker.getImage(image).remove(function(err, data) {
-      //if(err) console.log(err);
+    self.docker.getContainer(image).remove(function(err, data) {
+      if(err) console.log(err);
       callback();
     });
-  }, function(err) {});
+  }, function(err) {
+    cb();
+  });
+};
+
+
+Container.prototype.cleanImages = function(images, cb) {
+  var self = this;
+  async.forEach(images, function(image, callback) {
+    self.docker.getImage(image).remove(function(err, data) {
+      if(err) console.log(err);
+      callback();
+    });
+  }, function(err) {
+    cb();
+  });
 };
 
 
