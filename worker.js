@@ -106,7 +106,7 @@ function onSpawn(command, args, options) {
       cid = self.container.container.id;
     }
 
-    var container = new Container(this.docker, this.server, command, args, options, cid);
+    var container = new Container(self.docker, self.server, command, args, options, cid);
     container.create(function(err, dcontainer) {
       if (err) {
         console.log(err);
