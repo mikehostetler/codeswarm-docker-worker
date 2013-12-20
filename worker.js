@@ -1,5 +1,6 @@
 require('colors');
 
+var Domain        = require('domain');
 var async         = require('async');
 var net           = require('net');
 var DuplexEmitter = require('duplex-emitter');
@@ -55,6 +56,7 @@ function startReconnect() {
   this.reconnect = reconnect(onConnect.bind(this)).connect(dispatcherPort, dispatcherAddress);
 
   this.reconnect.on('disconnect', function() {
+    console.log('Disconnected from dispatcher.'.red);
     if(self.container) {
       self.container.clean(self.images);
       self.container = undefined;
@@ -88,35 +90,48 @@ function onSpawn(command, args, options) {
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
+  var d = Domain.create();
+  d.on('error', function(err) {
+    console.log('Error running: %j ARGS: %j:\n%s'.red, command, args, err.stack || err);
+    d.dispose();
+    fatalError.call(self, err);
+  });
+
   //Docker way, each strider instruction commits to a new image based on the previous one.
   //"Each instruction in a Dockerfile commits the change into a new image which will then be used as the base of the next instruction." <- same tactic used internally by docker while interpreting dockerifles
 
-  var cid = undefined;
-  if(self.container) {
-    cid = self.container.container.id;
-  }
-
-  var container = new Container(this.docker, this.server, command, args, options, cid);
-  container.create(function(err, dcontainer) {
-    if (err) {
-      console.log(err);
-      self.fatalError.call(self, err);
-    } else {
-      self.container = container;
-      container.run();
+  d.run(function() {
+    var cid = undefined;
+    if(self.container) {
+      cid = self.container.container.id;
     }
+
+    throw new Error('WTF????');
+
+    var container = new Container(this.docker, this.server, command, args, options, cid);
+    container.create(function(err, dcontainer) {
+      if (err) {
+        console.log(err);
+        fatalError.call(self, err);
+      } else {
+        self.container = container;
+        container.run();
+      }
+    });
+
+    container.on('done', function(code) {
+      self.images.push(this.container.id);
+      self.server.emit('close', code);
+    });
   });
 
-  container.on('done', function(code) {
-    self.images.push(this.container.id);
-    self.server.emit('close', code);
-  });
 }
 
 /// fatalError
 
 function fatalError(msg) {
-  error.call(this, msg);
+  error.call(this, msg.message || msg);
+  disconnect.call(this);
 }
 
 
