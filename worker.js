@@ -61,8 +61,6 @@ function startReconnect() {
       self.container.clean(self.images);
       self.container = undefined;
     }
-
-    console.log('Disconnected from dispatcher'.red);
   });
 
   this.reconnect.on('reconnect', function() {
@@ -80,12 +78,20 @@ function onConnect(socket) {
   this.images = [];
 
   this.server.on('spawn', onSpawn.bind(this));
+  this.server.on('cancelled', onCancel.bind(this));
 }
 
+function onCancel() {
+  if(this.container) {
+    this.container.clean(this.images);
+  }
+  console.log('Job cancelled!');
+  disconnect.call(this);
+}
 
 /// onSpawn
 
-function onSpawn(command, args, options) {
+function onSpawn(command, args, options, plugin) {
   var self = this;
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
