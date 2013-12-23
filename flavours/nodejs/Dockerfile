@@ -6,7 +6,7 @@ RUN apt-get upgrade -y
 
 RUN apt-get -y install wget git redis-server build-essential
 
-RUN wget -O - http://nodejs.org/dist/node-latest.tar.gz | tar -C /usr/local/ --strip-components=1 -zxv
+RUN wget -O - http://nodejs.org/dist/v0.10.24/node-v0.10.24-linux-x64.tar.gz | tar -C /usr/local/ --strip-components=1 -zx
 
 RUN npm install -g mocha
 RUN npm install -g grunt-cli

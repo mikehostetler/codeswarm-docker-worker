@@ -28,7 +28,7 @@ var Container = function (docker, server, cmd, args, options, image) {
     'Env': null,
     'Cmd': ['bash', '-c', cmd],
     'Dns': ['8.8.8.8', '8.8.4.4'],
-    'Image': image || 'apocas/nodechecker',
+    'Image': image || 'browserswarm/nodejs',
     'Volumes': {},
     'VolumesFrom': ''
   };
