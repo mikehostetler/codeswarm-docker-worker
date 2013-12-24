@@ -2,10 +2,10 @@ var Docker = require('dockerode'),
   dockerc = new Docker({socketPath: '/var/run/docker.sock'});
 
 
-build('../flavours/nodejs.tar.gz', 'browserswarm/nodejs', function() {
-  console.log('Nodejs images built!');
-  build('../flavours/sauce.tar.gz', 'browserswarm/sauce', function() {
-    console.log('Sauce images built!');
+build('./flavours/nodejs.tar.gz', 'browserswarm/nodejs', function() {
+  console.log('Nodejs image built!');
+  build('./flavours/sauce.tar.gz', 'browserswarm/sauce', function() {
+    console.log('Sauce image built!');
   });
 });
 

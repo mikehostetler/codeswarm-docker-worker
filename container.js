@@ -5,6 +5,7 @@ var sys = require('sys'),
 
 
 var Container = function (docker, server, cmd, args, options, image) {
+  var self = this;
 
   if(image === undefined) {
     cmd = 'mkdir -p ' + options.cwd + '; cd ' + options.cwd + '; ' + cmd;
@@ -25,7 +26,7 @@ var Container = function (docker, server, cmd, args, options, image) {
     'Tty': false,
     'OpenStdin': false,
     'StdinOnce': false,
-    'Env': null,
+    'Env': self.buildEnv(options.env),
     'Cmd': ['bash', '-c', cmd],
     'Dns': ['8.8.8.8', '8.8.4.4'],
     'Image': image || 'browserswarm/nodejs',
@@ -54,6 +55,15 @@ Container.prototype.create = function (cb) {
     self.container = container;
     cb(err, self.container);
   });
+};
+
+
+Container.prototype.buildEnv = function (env) {
+  var envf = [];
+  for(var k in env) {
+    envf.push(k + "=" + env[k]);
+  }
+  return envf;
 };
 
 

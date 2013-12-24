@@ -94,6 +94,8 @@ function onCancel() {
 function onSpawn(command, args, options, plugin) {
   var self = this;
 
+  console.log(plugin);
+
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
   var d = Domain.create();

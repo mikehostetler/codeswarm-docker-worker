@@ -19,6 +19,7 @@
     "async": "0.2.9"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "node bootstrap.js"
   }
 }
