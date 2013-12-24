@@ -1,12 +1,9 @@
 require('colors');
 
-var Domain        = require('domain');
-var async         = require('async');
 var net           = require('net');
 var DuplexEmitter = require('duplex-emitter');
 var reconnect     = require('reconnect');
-var Docker        = require('dockerode');
-var Container     = require('./container');
+var Loader        = require('./loader');
 
 exports.create = create;
 
@@ -27,8 +24,7 @@ function Worker() {
   this.socket = undefined;
   this.server = undefined;
   this.docker = undefined;
-  this.container = undefined;
-  this.images = [];
+  this.loader = new Loader();
 }
 
 var W = Worker.prototype;
@@ -44,7 +40,6 @@ W.work = function work() {
 /// connect
 
 W.connect = function connect() {
-  this.docker = new Docker({socketPath: '/var/run/docker.sock'});
   startReconnect.call(this);
 }
 
@@ -57,9 +52,8 @@ function startReconnect() {
 
   this.reconnect.on('disconnect', function() {
     console.log('Disconnected from dispatcher.'.red);
-    if(self.container) {
-      self.container.clean(self.images);
-      self.container = undefined;
+    if(self.loader) {
+      self.loader.clean();
     }
   });
 
@@ -75,16 +69,14 @@ function onConnect(socket) {
   console.log('Connected to dispatcher'.green);
   this.socket = socket;
   this.server = DuplexEmitter(socket);
-  this.images = [];
+
+  this.loader.server = this.server;
 
   this.server.on('spawn', onSpawn.bind(this));
   this.server.on('cancelled', onCancel.bind(this));
 }
 
 function onCancel() {
-  if(this.container) {
-    this.container.clean(this.images);
-  }
   console.log('Job cancelled!');
   disconnect.call(this);
 }
@@ -98,39 +90,7 @@ function onSpawn(command, args, options, plugin) {
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
-  var d = Domain.create();
-  d.on('error', function(err) {
-    console.log('Error running: %j ARGS: %j:\n%s'.red, command, args, err.stack || err);
-    d.dispose();
-    fatalError.call(self, err);
-  });
-
-  //Docker way, each strider instruction commits to a new image based on the previous one.
-  //"Each instruction in a Dockerfile commits the change into a new image which will then be used as the base of the next instruction." <- same tactic used internally by docker while interpreting dockerifles
-
-  d.run(function() {
-    var cid = undefined;
-    if(self.container) {
-      cid = self.container.container.id;
-    }
-
-    var container = new Container(self.docker, self.server, command, args, options, cid);
-    container.create(function(err, dcontainer) {
-      if (err) {
-        console.log(err);
-        fatalError.call(self, err);
-      } else {
-        self.container = container;
-        container.run();
-      }
-    });
-
-    container.on('done', function(code) {
-      self.images.push(this.container.id);
-      self.server.emit('close', code);
-    });
-  });
-
+  this.loader.run(command, args, options, plugin);
 }
 
 /// fatalError
