@@ -29,7 +29,7 @@ var Container = function (docker, server, cmd, args, options, image) {
     'Env': self.buildEnv(options.env),
     'Cmd': ['bash', '-c', cmd],
     'Dns': ['8.8.8.8', '8.8.4.4'],
-    'Image': image || 'browserswarm/nodejs',
+    'Image': image,
     'Volumes': {},
     'VolumesFrom': ''
   };
@@ -75,6 +75,8 @@ Container.prototype.run = function () {
       console.log(err);
       return self.server.emit('stderr', err + '\n');
     }
+
+    self.emit('started');
 
     self.running = true;
     self.wait();

@@ -2,6 +2,9 @@ var Docker        = require('dockerode'),
   Container = require('./container'),
   Domain        = require('domain');
 
+var net = require('net'),
+  DuplexEmitter = require('duplex-emitter');
+
 var Loader = function() {
   this.container = undefined;
   this.images = [];
@@ -40,13 +43,17 @@ Loader.prototype.nonInteractive = function(command, args, options) {
   var cid = undefined;
   if(self.container) {
     cid = self.container.container.id;
+  } else {
+    cid = 'browserswarm/nodejs';
   }
 
   var container = new Container(self.docker, self.server, command, args, options, cid);
   container.create(function(err, dcontainer) {
     if (err) {
       console.log(err);
-      fatalError.call(self, err);
+      self.server.emit('stderr', msg.message || msg + '\n');
+      this.server.emit('close');
+      //TODO: prob disconnect client
     } else {
       self.container = container;
       container.run();
@@ -61,7 +68,47 @@ Loader.prototype.nonInteractive = function(command, args, options) {
 
 
 Loader.prototype.interactive = function(command, args, options) {
-  //TODO: interactive...
+  //TODO: refactoring needed...
+  var self = this;
+
+  if(!this.container) {
+    this.container = new Container(self.docker, self.server, 'TODO: CMD BOOT SHIM', options, 'browserswarm/sauce');
+    container.create(function(err, dcontainer) {
+      if (err) {
+        console.log(err);
+        self.server.emit('stderr', msg.message || msg + '\n');
+        this.server.emit('close');
+      } else {
+        self.container = container;
+        container.run();
+      }
+    });
+
+    container.on('started', function() {
+      var socket = net.connect(3333);
+      var remote = DuplexEmitter(socket);
+      self.remote = remote;
+
+      remote.on('stderr', function(data) {
+        self.server.emit('stderr', data);
+      });
+
+      remote.on('stdout', function(data) {
+        self.server.emit('stdout', data);
+      });
+
+      remote.on('close', function(code) {
+        self.server.emit('close', code);
+        //TODO: prob disconnect client
+      });
+    });
+
+    container.on('done', function(code) {
+      self.images.push(this.container.id);
+    });
+  }
+
+  self.remote.emit('spawn', command, args, options);
 };
 
 
