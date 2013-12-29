@@ -85,6 +85,7 @@ Loader.prototype.interactive = function(command, args, options) {
     });
 
     container.on('started', function() {
+      //TODO: inspect created container to find private IP
       var socket = net.connect(3333);
       var remote = DuplexEmitter(socket);
       self.remote = remote;
