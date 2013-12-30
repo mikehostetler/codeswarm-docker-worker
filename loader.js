@@ -77,32 +77,40 @@ Loader.prototype.interactive = function(command, args, options, img) {
 
   if(!this.container) {
     this.container = new Container(self.docker, self.server, 'TODO: CMD BOOT SHIM', options, img);
-    container.create(function(err, dcontainer) {
+
+    this.container.create(function(err, dcontainer) {
       if (err) {
-        console.log(err);
-        self.server.emit('stderr', msg.message || msg + '\n');
-        this.server.emit('close');
+        self.fail(err);
       } else {
         self.container = container;
         container.run();
       }
     });
 
-    container.on('started', function() {
-      //TODO: inspect created container to find private IP
-      var ip = "";
-      self.connectShim(ip);
-
-      self.remote.emit('spawn', command, args, options);
+    this.container.on('started', function() {
+      self.container.container.inspect(function(err, data) {
+        if(err) {
+          self.fail(err);
+        } else {
+          self.connectShim(data.NetworkSettings.IpAddress);
+          self.remote.emit('spawn', command, args, options);
+        }
+      });
     });
 
-    container.on('done', function(code) {
+    this.container.on('done', function(code) {
       self.images.push(this.container.id);
     });
   } else {
     self.remote.emit('spawn', command, args, options);
   }
-  
+};
+
+
+Loader.prototype.fail = function(msg) {
+  console.log(msg);
+  this.server.emit('stderr', msg.message || msg + '\n');
+  this.server.emit('close');
 };
 
 
