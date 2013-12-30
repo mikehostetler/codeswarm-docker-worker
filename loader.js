@@ -117,19 +117,20 @@ Loader.prototype.profileTest = function(env) {
 
 
 Loader.prototype.connectShim = function(ip) {
+  var self = this;
   var socket = net.connect({'host': ip, 'port': 3333});
   var remote = DuplexEmitter(socket);
-  self.remote = remote;
+  this.remote = remote;
 
-  remote.on('stderr', function(data) {
+  this.remote.on('stderr', function(data) {
     self.server.emit('stderr', data);
   });
 
-  remote.on('stdout', function(data) {
+  this.remote.on('stdout', function(data) {
     self.server.emit('stdout', data);
   });
 
-  remote.on('close', function(code) {
+  this.remote.on('close', function(code) {
     self.server.emit('close', code);
     //TODO: prob disconnect client
   });
