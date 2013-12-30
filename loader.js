@@ -54,10 +54,7 @@ Loader.prototype.nonInteractive = function(command, args, options, img) {
   var container = new Container(self.docker, self.server, command, args, options, cid);
   container.create(function(err, dcontainer) {
     if (err) {
-      console.log(err);
-      self.server.emit('stderr', msg.message || msg + '\n');
-      this.server.emit('close');
-      //TODO: prob disconnect client
+      self.fail(err);
     } else {
       self.container = container;
       container.run();
@@ -111,6 +108,7 @@ Loader.prototype.fail = function(msg) {
   console.log(msg);
   this.server.emit('stderr', msg.message || msg + '\n');
   this.server.emit('close');
+  //TODO: prob disconnect client
 };
 
 
