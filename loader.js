@@ -28,7 +28,7 @@ Loader.prototype.run = function(command, args, options, plugin) {
   d.on('error', function(err) {
     console.log('Error running: %j ARGS: %j:\n%s'.red, command, args, err.stack || err);
     d.dispose();
-    fatalError.call(self, err);
+    self.fail(err);
   });
 
   d.run(function() {
