@@ -32,7 +32,7 @@ Loader.prototype.run = function(command, args, options, plugin) {
   });
 
   d.run(function() {
-    var guess = self.profileTest(env);
+    var guess = self.profileTest(options.env);
     if(guess.interactive === true) {
       self.interactive(command, args, options, guess.image);
     } else {
@@ -46,9 +46,9 @@ Loader.prototype.nonInteractive = function(command, args, options, img) {
   var self = this;
   var cid = undefined;
   if(self.container) {
-    cid = self.container.container.id;
+    cid = {'img': self.container.container.id, 'started': false};
   } else {
-    cid = img;
+    cid = {'img': img, 'started': true};
   }
 
   var container = new Container(self.docker, self.server, command, args, options, cid);
@@ -73,7 +73,7 @@ Loader.prototype.interactive = function(command, args, options, img) {
   var self = this;
 
   if(!this.container) {
-    this.container = new Container(self.docker, self.server, 'TODO: CMD BOOT SHIM', options, img);
+    this.container = new Container(self.docker, self.server, 'TODO: CMD BOOT SHIM', options, {'img': img, 'started': true});
 
     this.container.create(function(err, dcontainer) {
       if (err) {

@@ -4,10 +4,10 @@ var sys = require('sys'),
   async     = require('async');
 
 
-var Container = function (docker, server, cmd, args, options, image) {
+var Container = function (docker, server, cmd, args, options, cid) {
   var self = this;
 
-  if(image === undefined) {
+  if(cid.started === true) {
     cmd = 'mkdir -p ' + options.cwd + '; cd ' + options.cwd + '; ' + cmd;
   } else {
     cmd = 'cd ' + options.cwd + '; ' + cmd;
@@ -29,7 +29,7 @@ var Container = function (docker, server, cmd, args, options, image) {
     'Env': self.buildEnv(options.env),
     'Cmd': ['bash', '-c', cmd],
     'Dns': ['8.8.8.8', '8.8.4.4'],
-    'Image': image,
+    'Image': cid.img,
     'Volumes': {},
     'VolumesFrom': ''
   };
