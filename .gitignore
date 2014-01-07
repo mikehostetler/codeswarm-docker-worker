@@ -4,3 +4,7 @@ node_modules
 .vagrant
 
 flavours/sauce/strider-docker-shim
+
+flavours/nodejs.tar.gz
+
+flavours/sauce.tar.gz
