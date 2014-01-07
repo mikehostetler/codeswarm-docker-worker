@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd ./flavours/sauce
+rm -rf strider-docker-shim
+git clone git@github.com:BrowserSwarm/strider-docker-shim.git
+cd strider-docker-shim
+rm -rf .git
+npm install --production
+cd ..
+rm -rf ../sauce.tar.gz
+tar -czf ../sauce.tar.gz ./*
+
+cd ..
+
+cd ./nodejs
+rm -rf ../nodejs.tar.gz
+tar -czf ../nodejs.tar.gz ./*
+

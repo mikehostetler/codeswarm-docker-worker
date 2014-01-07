@@ -2,3 +2,5 @@
 node_modules
 
 .vagrant
+
+flavours/sauce/strider-docker-shim

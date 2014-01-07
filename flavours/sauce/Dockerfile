@@ -18,3 +18,4 @@ RUN wget -O - http://nodejs.org/dist/v0.10.24/node-v0.10.24-linux-x64.tar.gz | t
 
 RUN mkdir /sauce
 ADD Sauce-Connect.jar /sauce/
+ADD strider-docker-shim /sauce/
