@@ -73,25 +73,23 @@ Loader.prototype.interactive = function(command, args, options, img) {
   var self = this;
 
   if(!this.container) {
-    this.container = new Container(self.docker, self.server, 'TODO: CMD BOOT SHIM', options, {'img': img, 'started': true});
+    this.container = new Container(self.docker, self.server, 'node /sauce/shim/main.js', args, options, {'img': img, 'started': true});
 
     this.container.create(function(err, dcontainer) {
-      if (err) {
-        self.fail(err);
-      } else {
-        self.container = container;
-        container.run();
-      }
+      if (err) return self.fail(err);
+
+      self.container.run();
     });
 
     this.container.on('started', function() {
       self.container.container.inspect(function(err, data) {
-        if(err) {
-          self.fail(err);
-        } else {
-          self.connectShim(data.NetworkSettings.IpAddress);
+        if(err) return self.fail(err);
+
+        self.timer = setInterval(function() {
+          console.log('Connecting to shim at ' + data.NetworkSettings.IPAddress);
+          self.connectShim(data.NetworkSettings.IPAddress);
           self.remote.emit('spawn', command, args, options);
-        }
+        }, 3000);
       });
     });
 
@@ -124,7 +122,14 @@ Loader.prototype.profileTest = function(env) {
 
 Loader.prototype.connectShim = function(ip) {
   var self = this;
-  var socket = net.connect({'host': ip, 'port': 3333});
+  var socket = net.connect({'host': ip, 'port': 3333}, function() {
+    clearTimeout(self.timer);
+  });
+
+  socket.on('error', function(error) {
+    console.log(error);
+  });
+
   var remote = DuplexEmitter(socket);
   this.remote = remote;
 

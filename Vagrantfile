@@ -29,7 +29,7 @@ echo 'deb http://get.docker.io/ubuntu docker main' > \
 apt-get update -q
 
 # Install docker.  'apt-get install' is idempotent.
-apt-get install -q -y lxc-docker
+apt-get install -q -y lxc-docker git
 
 usermod -a -G docker "$user"
 
