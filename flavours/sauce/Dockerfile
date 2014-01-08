@@ -16,6 +16,6 @@ RUN apt-get install -y oracle-java7-installer
 
 RUN wget -O - http://nodejs.org/dist/v0.10.24/node-v0.10.24-linux-x64.tar.gz | tar -C /usr/local/ --strip-components=1 -zx
 
-RUN mkdir -p /sauce/shim
-ADD Sauce-Connect.jar /sauce/
-ADD strider-docker-shim /sauce/shim/
+RUN mkdir -p /browserswarm/shim
+ADD Sauce-Connect.jar /browserswarm/
+ADD strider-docker-shim /browserswarm/shim/
