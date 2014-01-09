@@ -24,7 +24,7 @@ function Worker() {
   this.socket = undefined;
   this.server = undefined;
   this.docker = undefined;
-  this.loader = new Loader();
+  this.loader = undefined;
 }
 
 var W = Worker.prototype;
@@ -69,11 +69,7 @@ function onConnect(socket) {
   console.log('Connected to dispatcher'.green);
   this.socket = socket;
   this.server = DuplexEmitter(socket);
-
-  this.loader.server = this.server;
-
-  this.server.on('spawn', onSpawn.bind(this));
-  this.server.on('cancelled', onCancel.bind(this));
+  this.server.on('init', onInit.bind(this));
 }
 
 function onCancel() {
@@ -81,14 +77,25 @@ function onCancel() {
   disconnect.call(this);
 }
 
+
+function onInit(type, env) {
+  console.log('got init event from server: type = %j, env = %j', type, env);
+
+  this.loader = new Loader(type, this.server);
+
+  this.server.on('spawn', onSpawn.bind(this));
+  this.server.on('cancelled', onCancel.bind(this));
+  this.server.emit('initialised');
+}
+
 /// onSpawn
 
-function onSpawn(command, args, options, plugin) {
+function onSpawn(command, args, options) {
   var self = this;
 
   console.log('Running: %j ARGS: %j, OPTIONS: %j'.yellow, command, args, options);
 
-  this.loader.run(command, args, options, plugin);
+  this.loader.run(command, args, options);
 }
 
 /// fatalError

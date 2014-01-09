@@ -15,3 +15,7 @@ RUN npm install -g jshint
 RUN npm install -g tap
 RUN npm install -g istanbul
 RUN npm install -g vows
+
+RUN mkdir -p /browserswarm/shim
+ADD Sauce-Connect.jar /browserswarm/
+ADD strider-docker-shim /browserswarm/shim/

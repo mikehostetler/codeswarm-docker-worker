@@ -5,11 +5,13 @@ var Docker        = require('dockerode'),
 var net = require('net'),
   DuplexEmitter = require('duplex-emitter');
 
-var Loader = function() {
+var Loader = function(type, server) {
+  this.type = type;
   this.container = undefined;
   this.images = [];
   this.docker = new Docker({socketPath: '/var/run/docker.sock'});
-  this.server = undefined;
+  this.server = server;
+  this.tries = 0;
 };
 
 
@@ -21,7 +23,7 @@ Loader.prototype.clean = function() {
 };
 
 
-Loader.prototype.run = function(command, args, options, plugin) {
+Loader.prototype.run = function(command, args, options) {
   var self = this;
 
   var d = Domain.create();
@@ -32,11 +34,11 @@ Loader.prototype.run = function(command, args, options, plugin) {
   });
 
   d.run(function() {
-    var guess = self.profileTest(options.env);
-    if(guess.interactive === true) {
-      self.interactive(command, args, options, guess.image);
+    var profile = self.profileTest(self.type);
+    if(profile.interactive === true) {
+      self.interactive(command, args, options, profile.image);
     } else {
-      self.nonInteractive(command, args, options, guess.image);
+      self.nonInteractive(command, args, options, profile.image);
     }
   });
 };
@@ -57,12 +59,12 @@ Loader.prototype.nonInteractive = function(command, args, options, img) {
       self.fail(err);
     } else {
       self.container = container;
+      self.images.push(dcontainer.id);
       container.run();
     }
   });
 
   container.on('done', function(code) {
-    self.images.push(this.container.id);
     self.server.emit('close', code);
   });
 };
@@ -78,6 +80,7 @@ Loader.prototype.interactive = function(command, args, options, img) {
     this.container.create(function(err, dcontainer) {
       if (err) return self.fail(err);
 
+      self.images.push(dcontainer.id);
       self.container.run();
     });
 
@@ -88,13 +91,17 @@ Loader.prototype.interactive = function(command, args, options, img) {
         self.timer = setInterval(function() {
           self.connectShim(data.NetworkSettings.IPAddress);
           self.remote.emit('spawn', command, args, options);
+          self.tries++;
         }, 1000);
       });
     });
 
+    
     this.container.on('done', function(code) {
-      self.images.push(this.container.id);
+      self.server.emit('close', code);
+      clearTimeout(self.timer);
     });
+
   } else {
     self.remote.emit('spawn', command, args, options);
   }
@@ -109,18 +116,19 @@ Loader.prototype.fail = function(msg) {
 };
 
 
-Loader.prototype.profileTest = function(env) {
-  //TODO: strider's 'plugin' property changes during a test (plugin:git, plugin:sauce, ...), fix & refactor this later.
-  if(env.SAUCE_USERNAME) {
-    return {'interactive': true, 'image': 'browserswarm/sauce'};
-  } else {
-    return {'interactive': false, 'image': 'browserswarm/nodejs'};
-  }
+Loader.prototype.profileTest = function(type) {
+  //if needed noninteractive testing is available (stdin not supported but builds test using container image layers)
+  return {'interactive': true, 'image': 'browserswarm/' + type};
 };
 
 
 Loader.prototype.connectShim = function(ip) {
   var self = this;
+
+  if(this.tries > 15) {
+    clearTimeout(self.timer);
+  }
+
   var socket = net.connect({'host': ip, 'port': 3333}, function() {
     console.log('Connected to shim');
     clearTimeout(self.timer);

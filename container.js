@@ -135,9 +135,12 @@ Container.prototype.clean = function(images) {
 Container.prototype.cleanContainers = function(images, cb) {
   var self = this;
   async.forEach(images, function(image, callback) {
-    self.docker.getContainer(image).remove(function(err, data) {
-      if(err) console.log(err);
-      callback();
+    var container = self.docker.getContainer(image);
+    container.stop(function(err, data) {
+      container.remove(function(err, data) {
+        if(err) console.log(err);
+        callback();
+      });
     });
   }, function(err) {
     cb();
