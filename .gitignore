@@ -8,3 +8,5 @@ flavours/sauce/strider-docker-shim
 flavours/nodejs.tar.gz
 
 flavours/sauce.tar.gz
+
+flavours/nodejs/strider-docker-shim

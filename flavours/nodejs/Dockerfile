@@ -18,5 +18,4 @@ RUN npm install -g vows
 RUN npm install -g plato
 
 RUN mkdir -p /browserswarm/shim
-ADD Sauce-Connect.jar /browserswarm/
 ADD strider-docker-shim /browserswarm/shim/

@@ -7,8 +7,11 @@ cd strider-docker-shim
 rm -rf .git
 npm install --production
 cd ..
+
+rm -rf ../nodejs/strider-docker-shim
 cp -R ./strider-docker-shim ../nodejs/
 docker build -t browserswarm/sauce .
 
 cd ../nodejs
 docker build -t browserswarm/node .
+
