@@ -14,8 +14,8 @@ var dispatcherPort;
 var dispatcherAddress;
 
 function create(address, port) {
-  dispatcherAddress = address || "127.0.0.1";
-  dispatcherPort = port || 8632;
+  dispatcherAddress = address;
+  dispatcherPort = port;
   return new Worker;
 }
 
