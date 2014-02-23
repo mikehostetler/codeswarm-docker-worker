@@ -20,4 +20,4 @@ RUN npm install -g plato
 
 RUN mkdir -p /codeswarm/shim
 ADD Sauce-Connect.jar /codeswarm/
-ADD strider-docker-shim /codeswarm/shim/
+ADD docker-shim /codeswarm/shim/

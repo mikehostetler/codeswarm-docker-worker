@@ -18,4 +18,4 @@ RUN npm install -g vows
 RUN npm install -g plato
 
 RUN mkdir -p /codeswarm/shim
-ADD strider-docker-shim /codeswarm/shim/
+ADD docker-shim /codeswarm/shim/

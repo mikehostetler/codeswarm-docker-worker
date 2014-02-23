@@ -3,10 +3,10 @@ node_modules
 
 .vagrant
 
-flavours/sauce/strider-docker-shim
+flavours/sauce/docker-shim
 
 flavours/nodejs.tar.gz
 
 flavours/sauce.tar.gz
 
-flavours/nodejs/strider-docker-shim
+flavours/nodejs/docker-shim
