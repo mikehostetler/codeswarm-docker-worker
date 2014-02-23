@@ -1,17 +1,17 @@
 #!/bin/bash
 
 cd ./flavours/sauce
-rm -rf strider-docker-shim
-git clone git@github.com:BrowserSwarm/strider-docker-shim.git
-cd strider-docker-shim
+rm -rf docker-shim
+git clone git@github.com:codeswarm/docker-shim.git
+cd docker-shim
 rm -rf .git
 npm install --production
 cd ..
 
-rm -rf ../nodejs/strider-docker-shim
-cp -R ./strider-docker-shim ../nodejs/
-docker build -t browserswarm/sauce .
+rm -rf ../nodejs/docker-shim
+cp -R ./docker-shim ../nodejs/
+docker build -t codeswarm/sauce .
 
 cd ../nodejs
-docker build -t browserswarm/node .
+docker build -t codeswarm/node .
 

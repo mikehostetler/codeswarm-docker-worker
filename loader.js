@@ -75,7 +75,7 @@ Loader.prototype.interactive = function(command, args, options, img) {
   var self = this;
 
   if(!this.container) {
-    this.container = new Container(self.docker, self.server, 'node /browserswarm/shim/main.js', args, options, {'img': img, 'started': true});
+    this.container = new Container(self.docker, self.server, 'node /codeswarm/shim/main.js', args, options, {'img': img, 'started': true});
 
     this.container.create(function(err, dcontainer) {
       if (err) return self.fail(err);
@@ -118,7 +118,7 @@ Loader.prototype.fail = function(msg) {
 
 Loader.prototype.profileTest = function(type) {
   //if needed noninteractive testing is available (stdin not supported but builds test using container image layers)
-  return {'interactive': true, 'image': 'browserswarm/' + type};
+  return {'interactive': true, 'image': 'codeswarm/' + type};
 };
 
 

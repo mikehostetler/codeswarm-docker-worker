@@ -18,6 +18,6 @@ RUN wget -O - http://nodejs.org/dist/v0.10.24/node-v0.10.24-linux-x64.tar.gz | t
 
 RUN npm install -g plato
 
-RUN mkdir -p /browserswarm/shim
-ADD Sauce-Connect.jar /browserswarm/
-ADD strider-docker-shim /browserswarm/shim/
+RUN mkdir -p /codeswarm/shim
+ADD Sauce-Connect.jar /codeswarm/
+ADD strider-docker-shim /codeswarm/shim/

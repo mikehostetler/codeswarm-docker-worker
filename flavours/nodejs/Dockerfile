@@ -17,5 +17,5 @@ RUN npm install -g istanbul
 RUN npm install -g vows
 RUN npm install -g plato
 
-RUN mkdir -p /browserswarm/shim
-ADD strider-docker-shim /browserswarm/shim/
+RUN mkdir -p /codeswarm/shim
+ADD strider-docker-shim /codeswarm/shim/
