@@ -20,6 +20,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "postinstall": "bootstrap"
+    "postinstall": "bootstrap",
+    "forever": "forever start index.js"
   }
 }
