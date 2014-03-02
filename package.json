@@ -20,7 +20,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "postinstall": "bootstrap",
-    "forever": "forever start index.js"
+    "forever": "forever start index.js",
+    "installbootstrap": "npm install; /bin/bash bootstrap;"
   }
 }
