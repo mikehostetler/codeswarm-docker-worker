@@ -1,7 +1,7 @@
 {
   "name": "codeswarm-docker-worker",
   "version": "0.0.1",
-  "description": "Remote docker worker",
+  "description": "CodeSwarm Remote Docker Worker",
   "repository": {
     "type": "git",
     "url": "git://github.com/codeswarm/codeswarm-docker-worker.git"
@@ -12,15 +12,22 @@
   },
   "dependencies": {
     "duplex-emitter": "~2.1.2",
-    "async": "~0.2.9",
+    "async": "0.2.9",
     "reconnect": "~1.5.2",
     "colors": "~0.6.2",
-    "dockerode": "1.x.x",
-    "async": "0.2.9"
+    "dockerode": "^1.2.10"
   },
   "scripts": {
     "start": "node index.js",
     "forever": "forever start index.js",
+    "foreverstop": "forever stop index.js",
     "installbootstrap": "npm install; /bin/bash bootstrap;"
-  }
+  },
+  "homepage": "https://github.com/codeswarm/codeswarm-docker-worker",
+  "main": "index.js",
+  "devDependencies": {},
+  "license": "Apache 2",
+  "keywords": [
+    "codeswarm"
+  ]
 }
